@@ -1,4 +1,5 @@
 mod window;
+mod task_object;
 
 use gtk::{gio,glib,prelude::*,Application};
 use window::Window;

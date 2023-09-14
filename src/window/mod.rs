@@ -1,8 +1,10 @@
 mod imp;
-use gtk::{glib,gio,prelude::*,subclass::prelude::*,Application,NoSelection, SignalListItemFactory, ListItem};
+use gtk::{glib,gio,prelude::*,subclass::prelude::*,Application,NoSelection, SignalListItemFactory, ListItem, 
+    CustomFilter, FilterListModel};
 use glib::{Object,clone};
+use gio::Settings;
 
-use crate::{task_object::TaskObject, task_row::TaskRow};
+use crate::{task_object::TaskObject, task_row::TaskRow, APP_ID};
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
@@ -14,6 +16,19 @@ impl Window {
     pub fn new(app:&Application)->Self {
         Object::builder().property("application", app).build()
     }
+    fn setup_settings(&self) {
+        let settings=Settings::new(APP_ID);
+        self.imp()
+            .settings
+            .set(settings)
+            .expect("primero setup_settings que settings");
+    }
+    fn settings(&self)->&Settings {
+        self.imp()
+            .settings
+            .get()
+            .expect("no se organizo settings en setup_settings")
+    }
     fn tasks(&self)->gio::ListStore {
         self.imp()
             .tasks
@@ -21,12 +36,43 @@ impl Window {
             .clone()
             .expect("no pudo obtener las tareas actuales")
     }
+    fn filter(&self)->Option<CustomFilter> {
+        let filter_state:String=self.settings().get("filter");
+
+        let filter_open=CustomFilter::new(|obj|{
+            let task_object=obj
+                .downcast_ref::<TaskObject>()
+                .expect("el objeto tiene que ser TaskObject");
+            !task_object.is_completed()
+        });
+        let filter_done=CustomFilter::new(|obj|{
+            let task_object=obj
+                .downcast_ref::<TaskObject>()
+                .expect("el objeto tiene que ser TaskObject");
+            task_object.is_completed()
+        });
+
+        match filter_state.as_str() {
+            "All"=>None,
+            "Done"=>Some(filter_done),
+            "Open"=>Some(filter_open),
+            _ => unreachable!( ),
+        }
+        
+    }
     fn setup_tasks(&self) {
         let model=gio::ListStore::new::<TaskObject>();
         self.imp().tasks.replace(Some(model));
 
-        let selection_model=NoSelection::new(Some(self.tasks()));
+        let filter_model=FilterListModel::new(Some(self.tasks()), self.filter());
+        let selection_model=NoSelection::new(Some(filter_model.clone()));
         self.imp().tasks_list.set_model(Some(&selection_model));
+
+        self.settings().connect_changed(Some("filter"), 
+            clone!(@weak self as window,@weak filter_model =>move|_,_|{
+                filter_model.set_filter(window.filter().as_ref());
+            })
+        );
     }
     fn setup_callbacks(&self) {
         self.imp()
@@ -85,5 +131,28 @@ impl Window {
             task_row.unbind();
         });
         self.imp().tasks_list.set_factory(Some(&factory));
+    }
+    fn setup_actions(&self) {
+        let action_filter=self.settings().create_action("filter");
+        self.add_action(&action_filter);
+
+        let action_remove_done_tasks=
+            gio::SimpleAction::new("remove-done-tasks", None);
+        action_remove_done_tasks.connect_activate(clone!(@weak self as window=>move|_,_|{
+            let tasks=window.tasks();
+            let mut position=0;
+            while let Some(item) = tasks.item(position) {
+                let task_object=item
+                    .downcast_ref::<TaskObject>()
+                    .expect("el objeto tiene que ser TaskObject");
+                if task_object.is_completed() {
+                    tasks.remove(position);
+                }else {
+                    position += 1;
+                }
+            }
+            })
+        );
+        self.add_action(&action_remove_done_tasks);
     }
 }

@@ -1,7 +1,7 @@
 mod imp;
-
 use gtk::{glib,subclass::prelude::*};
 use glib::Object;
+use serde::{Deserialize,Serialize};
 
 glib::wrapper! {
     pub struct TaskObject(ObjectSubclass<imp::TaskObject>);
@@ -23,7 +23,7 @@ impl TaskObject {
         Self::new(task_data.completed, task_data.content)
     }
 }
-#[derive(Default,Clone)]
+#[derive(Default,Clone,Serialize,Deserialize)]
 pub struct TaskData{
     pub completed:bool,
     pub content:String,

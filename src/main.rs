@@ -1,7 +1,7 @@
 mod window;
 mod task_object;
 mod task_row;
-
+mod utils;
 use gtk::{gio,glib,prelude::*,Application};
 use window::Window;
 const APP_ID:&str="org.gtk_rs.Todo";

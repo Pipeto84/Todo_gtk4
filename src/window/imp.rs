@@ -1,7 +1,9 @@
-use std::cell::{RefCell,OnceCell};
-use gtk::{gio,glib,subclass::prelude::*,CompositeTemplate,Entry,ListView};
+use std::{cell::{RefCell,OnceCell},fs::File};
+use gtk::{gio,glib,prelude::*,subclass::prelude::*,CompositeTemplate,Entry,ListView};
 use glib::subclass::InitializingObject;
 use gio::Settings;
+
+use crate::{task_object::{TaskData, TaskObject}, utils::data_path};
 
 #[derive(Default,CompositeTemplate)]
 #[template(resource="/org/gtk_rs/Todo/window.ui")]
@@ -32,11 +34,26 @@ impl ObjectImpl for Window {
         let obj=self.obj();
         obj.setup_settings();
         obj.setup_tasks();
+        obj.restore_data();
         obj.setup_callbacks();
         obj.setup_factory();
         obj.setup_actions();
     }
 }
-impl WindowImpl for Window {}
+impl WindowImpl for Window {
+    fn close_request(&self) -> glib::Propagation {
+        let backup_data:Vec<TaskData>=self
+            .obj()
+            .tasks()
+            .iter::<TaskObject>()
+            .filter_map(Result::ok)
+            .map(|task_object|task_object.task_data())
+            .collect();
+        let file=File::create(data_path()).expect("no pudo crear el archivo json");
+        serde_json::to_writer(file, &backup_data)
+            .expect("no pudo escribir los datos en el archivo json");
+        self.parent_close_request()
+    }
+}
 impl ApplicationWindowImpl for Window {}
 impl WidgetImpl for Window {}

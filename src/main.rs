@@ -2,7 +2,8 @@ mod window;
 mod task_object;
 mod task_row;
 mod utils;
-use gtk::{gio,glib,prelude::*,Application};
+use gtk::{gio,glib,prelude::*,Application, CssProvider,gdk};
+use gdk::Display;
 use window::Window;
 const APP_ID:&str="org.gtk_rs.Todo";
 fn main()->glib::ExitCode {
@@ -11,9 +12,21 @@ fn main()->glib::ExitCode {
     let app=Application::builder()
         .application_id(APP_ID)
         .build();
-    app.connect_startup(setup_shortcuts);
+    app.connect_startup(|app|{
+        setup_shortcuts(app);
+        load_css()
+    });
     app.connect_activate(build_ui);
     app.run()
+}
+fn load_css() {
+    let provider=CssProvider::new();
+    provider.load_from_resource("org/gtk_rs/Todo/style.css");
+
+    gtk::style_context_add_provider_for_display(
+        &Display::default().expect("no pudo conectar el display"), 
+        &provider, 
+        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 fn build_ui(app:&Application) {
     let window=Window::new(app);

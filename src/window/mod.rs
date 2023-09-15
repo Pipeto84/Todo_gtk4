@@ -1,6 +1,6 @@
 mod imp;
 use std::fs::File;
-use gtk::{glib,gio,prelude::*,subclass::prelude::*,Application,NoSelection, SignalListItemFactory, ListItem, 
+use gtk::{glib,gio,prelude::*,subclass::prelude::*,NoSelection, SignalListItemFactory, ListItem, 
     CustomFilter, FilterListModel};
 use glib::{Object,clone};
 use gio::Settings;
@@ -14,7 +14,7 @@ glib::wrapper! {
                     gtk::ConstraintTarget,gtk::Native,gtk::Root,gtk::ShortcutManager;
 }
 impl Window {
-    pub fn new(app:&Application)->Self {
+    pub fn new(app:&adw::Application)->Self {
         Object::builder().property("application", app).build()
     }
     fn setup_settings(&self) {

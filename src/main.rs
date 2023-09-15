@@ -2,13 +2,13 @@ mod window;
 mod task_object;
 mod task_row;
 mod utils;
-use gtk::{gio,glib,prelude::*,Application};
+use gtk::{gio,glib,prelude::*};
 use window::Window;
 const APP_ID:&str="org.gtk_rs.Todo";
 fn main()->glib::ExitCode {
     gio::resources_register_include!("todo.gresource")
         .expect("fallo el registro de recursos");
-    let app=Application::builder()
+    let app=adw::Application::builder()
         .application_id(APP_ID)
         .build();
     app.connect_startup(setup_shortcuts);
@@ -28,11 +28,11 @@ fn main()->glib::ExitCode {
 //         &provider, 
 //         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 // }
-fn build_ui(app:&Application) {
+fn build_ui(app:&adw::Application) {
     let window=Window::new(app);
     window.present();
 }
-fn setup_shortcuts(app:&Application) {
+fn setup_shortcuts(app:&adw::Application) {
     app.set_accels_for_action("win.filter('All')", &["<Ctrl>a"]);
     app.set_accels_for_action("win.filter('Open')", &["<Ctrl>o"]);
     app.set_accels_for_action("win.filter('Done')", &["<Ctrl>d"]);

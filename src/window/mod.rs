@@ -110,6 +110,12 @@ impl Window {
             .build();
         let row=ActionRow::builder()
             .activatable_widget(&checkbutton)
+            .css_name("rows")
+            .margin_top(12)
+            .margin_bottom(12)
+            .margin_start(12)
+            .margin_end(12)   
+            .height_request(50)         
             .build();
         row.add_prefix(&checkbutton);
 
@@ -134,7 +140,6 @@ impl Window {
         self.imp()
             .entry
             .connect_icon_release(clone!(@weak self as window=>move|_,_x|{
-                window.new_task();println!("{:?}",_x);
             }));
     }
     fn new_task(&self) {

@@ -1,5 +1,5 @@
 use std::{cell::{RefCell,OnceCell},fs::File};
-use gtk::{gio,glib,prelude::*,subclass::prelude::*,CompositeTemplate,Entry,ListView};
+use gtk::{gio,glib,prelude::*,subclass::prelude::*,CompositeTemplate,Entry,ListBox};
 use glib::subclass::InitializingObject;
 use gio::Settings;
 
@@ -11,7 +11,7 @@ pub struct Window{
     #[template_child]
     pub entry:TemplateChild<Entry>,
     #[template_child]
-    pub tasks_list:TemplateChild<ListView>,
+    pub tasks_list:TemplateChild<ListBox>,
     pub tasks:RefCell<Option<gio::ListStore>>,
     pub settings:OnceCell<Settings>,
 }
@@ -36,7 +36,6 @@ impl ObjectImpl for Window {
         obj.setup_tasks();
         obj.restore_data();
         obj.setup_callbacks();
-        obj.setup_factory();
         obj.setup_actions();
     }
 }

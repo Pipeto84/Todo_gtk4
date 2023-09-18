@@ -1,8 +1,9 @@
 mod window;
 mod task_object;
 mod utils;
-use gtk::{gio,glib,prelude::*,gdk,CssProvider};
+use gtk::{gio,glib,gdk,CssProvider};
 use gdk::Display;
+use adw::prelude::*;
 use window::Window;
 const APP_ID:&str="org.gtk_rs.Todo";
 fn main()->glib::ExitCode {
@@ -11,7 +12,6 @@ fn main()->glib::ExitCode {
     let app=adw::Application::builder()
         .application_id(APP_ID)
         .build();
-    // app.connect_startup(setup_shortcuts);
     app.connect_startup(|app|{
         setup_shortcuts(app);
         load_css()

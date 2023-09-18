@@ -1,7 +1,8 @@
 use std::{cell::{RefCell,OnceCell},fs::File};
-use gtk::{gio,glib,prelude::*,subclass::prelude::*,CompositeTemplate,Entry,ListBox};
+use gtk::{gio,glib,CompositeTemplate,Entry,ListBox};
 use glib::subclass::InitializingObject;
 use gio::Settings;
+use adw::{prelude::*,subclass::prelude::*};
 
 use crate::{task_object::{TaskData, TaskObject}, utils::data_path};
 
@@ -19,7 +20,7 @@ pub struct Window{
 impl ObjectSubclass for Window {
     const NAME: &'static str = "TodoWindow";
     type Type = super::Window;
-    type ParentType = gtk::ApplicationWindow;
+    type ParentType = adw::ApplicationWindow;
 
     fn class_init(_klass: &mut Self::Class) {
         _klass.bind_template();
@@ -56,3 +57,4 @@ impl WindowImpl for Window {
 }
 impl ApplicationWindowImpl for Window {}
 impl WidgetImpl for Window {}
+impl AdwApplicationWindowImpl for Window {}

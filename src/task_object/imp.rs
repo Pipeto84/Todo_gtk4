@@ -1,6 +1,7 @@
 use std::cell::RefCell;
-use gtk::{glib,prelude::*,subclass::prelude::*};
+use gtk::glib;
 use glib::Properties;
+use adw::{prelude::*,subclass::prelude::*};
 
 use super::TaskData;
 

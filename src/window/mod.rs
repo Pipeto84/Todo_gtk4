@@ -9,7 +9,7 @@ use crate::{task_object::{TaskObject, TaskData},APP_ID,utils::data_path};
 
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
-        @extends gtk::ApplicationWindow,gtk::Window,gtk::Widget,
+        @extends adw::ApplicationWindow,gtk::ApplicationWindow,gtk::Window,gtk::Widget,
         @implements gio::ActionGroup,gio::ActionMap,gtk::Accessible,gtk::Buildable,
                     gtk::ConstraintTarget,gtk::Native,gtk::Root,gtk::ShortcutManager;
 }
@@ -84,7 +84,6 @@ impl Window {
         self.tasks().connect_items_changed(
             clone!(@weak self as window=>move|tasks,_x,_y,_z|{
                 window.set_task_list_visible(tasks);
-                println!("{:?}-{:?}-{:?}",_x,_y,_z);
             })
         );
     }
@@ -111,11 +110,11 @@ impl Window {
         let row=ActionRow::builder()
             .activatable_widget(&checkbutton)
             .css_name("rows")
-            .margin_top(12)
-            .margin_bottom(12)
+            .margin_top(6)
+            .margin_bottom(6)
             .margin_start(12)
             .margin_end(12)   
-            .height_request(50)         
+            .height_request(40)         
             .build();
         row.add_prefix(&checkbutton);
 

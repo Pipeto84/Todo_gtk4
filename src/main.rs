@@ -1,6 +1,7 @@
 mod window;
 mod task_object;
 mod utils;
+mod collection_object;
 use gtk::{gio,glib,gdk,CssProvider};
 use gdk::Display;
 use adw::prelude::*;

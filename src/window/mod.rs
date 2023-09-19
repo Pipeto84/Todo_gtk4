@@ -52,14 +52,12 @@ impl Window {
                 .expect("el objeto tiene que ser TaskObject");
             task_object.is_completed()
         });
-
         match filter_state.as_str() {
             "All"=>None,
             "Done"=>Some(filter_done),
             "Open"=>Some(filter_open),
             _ => unreachable!( ),
         }
-        
     }
     fn setup_tasks(&self) {
         let model=gio::ListStore::new::<TaskObject>();

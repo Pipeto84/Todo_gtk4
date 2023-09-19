@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iterface>
+  <menu>
+  </menu>
+  <template class="TodoWindow" parent="AdwApplicationWindow">
+    <object class="GtkStack" id="stack">
+      <object class="GtkStackPage">
+        <property name="name">empty</property>
+        <object class="GtkBox">
+          <object class="GtkHeaderBar"></object>
+          <object class="GtkWindowHandle">
+            <object class="AdwStatusPage">
+              <object class="GtkButton"></object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="GtkStackPage">
+        <property name="name">main</property>
+        <object class="GtkBox">
+          <object class="AdwLeaflet" id="leaflet">
+            <object class="GtkBox">
+              <object class="AdwHeaderBar">
+                <object class="GtkToggleButton"></object>
+              </object>
+              <object class="GtkScrolledWindow">
+                <object class="GtkListBox" id="collections_list"></object>
+              </object>
+            </object>
+            <object class="AdwLeafletPage">
+              <object class="GtkSeparator" />  
+            </object>
+            <object class="GtkBox">
+              <object class="AdwHeaderBar">
+                <object class="GtkButton" id="back_button"></object>
+                <object class="GtkMenuButton"></object>
+              </object>
+              <object class="GtkScrolledWindow">
+                <object class="AdwClamp">
+                  <object class="GtkBox">
+                    <object class="GtkEntry" id="entry"></object>
+                    <object class="GtkListBox" id="tasks_list"></object>
+                  </object>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </template>
+</iterface>

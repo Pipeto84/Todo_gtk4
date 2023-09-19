@@ -58,7 +58,7 @@
                         <property name="description" translatable="yes">Crear algunas tareas para empezar la app.</property>
                         <property name="child">
                           <object class="GtkButton">
-                            <property name="label" translatable="yes">_New Collection</property>
+                            <property name="label" translatable="yes">_Nueva Coleccion</property>
                             <property name="use-underline">True</property>
                             <property name="halign">center</property>
                             <property name="action-name">win.new-collection</property>

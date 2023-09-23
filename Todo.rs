@@ -1,7 +1,7 @@
 pub struct Window{
     pub entry:TemplateChild<Entry>,
     pub tasks_list:TemplateChild<ListBox>,
-    pub tasks:RefCell<Option<gio::ListStore>>,
+    pub tasks:RefCell<Option<ListStore>>,
     pub settings:OnceCell<Settings>,
 }
 impl ObjectSubclass for Window {
@@ -25,7 +25,7 @@ pub struct CollectionObject{
     #[property(get,set)]
     pub title:RefCell<String>,
     #[property(get,set)]
-    pub tasks:OnceCell<gio::ListStore>,
+    pub tasks:OnceCell<ListStore>,
 }
 impl ObjectSubclass for CollectionObject {
     const NAME: &'static str = "TodoCollectionObject";

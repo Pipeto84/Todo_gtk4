@@ -17,7 +17,7 @@ impl CollectionObject {
     }
     pub fn to_collection_data(&self)->CollectionData {
         let title=self.imp().title.borrow().clone();
-        let tasks_data=self
+        let tasks_data:Vec<TaskData>=self
             .tasks()
             .iter::<TaskObject>()
             .filter_map(Result::ok)

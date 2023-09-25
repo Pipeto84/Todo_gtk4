@@ -104,7 +104,7 @@
                       <object class="GtkScrolledWindow">
                         <property name="vexpand">true</property>
                         <property name="child">
-                          <object class="GtkListBox" id="collection_list">
+                          <object class="GtkListBox" id="collections_list">
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>

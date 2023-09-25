@@ -1,12 +1,13 @@
 mod imp;
 use std::fs::File;
-use gtk::{glib,gio,NoSelection,CustomFilter,FilterListModel,CheckButton,Align};
+use gtk::{glib,gio,NoSelection,CustomFilter,FilterListModel,CheckButton,Align,
+    ListBoxRow,Label,pango};
 use glib::{Object,clone};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,ActionRow};
 
 use crate::{task_object::{TaskObject, TaskData},APP_ID,utils::data_path};
-
+use crate::collection_object::{CollectionObject,CollectionData};
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
         @extends adw::ApplicationWindow,gtk::ApplicationWindow,gtk::Window,gtk::Widget,
@@ -30,12 +31,30 @@ impl Window {
             .get()
             .expect("no se organizo settings en setup_settings")
     }
-    fn tasks(&self)->gio::ListStore {
+    fn tasks(&self) -> gio::ListStore {
+        self.current_collection().tasks()
+    }
+    fn current_collection(&self) -> CollectionObject {
         self.imp()
-            .tasks
+            .current_collection
             .borrow()
             .clone()
-            .expect("no pudo obtener las tareas actuales")
+            .expect("`current_collection` should be set in `set_current_collections`.")
+    }
+    fn collections(&self) -> gio::ListStore {
+        self.imp()
+            .collections
+            .get()
+            .expect("`collections` should be set in `setup_collections`.")
+            .clone()
+    }
+    fn set_filter(&self) {
+        self.imp()
+            .current_filter_model
+            .borrow()
+            .clone()
+            .expect("`current_filter_model` should be set in `set_current_collection`.")
+            .set_filter(self.filter().as_ref());
     }
     fn filter(&self)->Option<CustomFilter> {
         let filter_state:String=self.settings().get("filter");
@@ -59,45 +78,63 @@ impl Window {
             _ => unreachable!( ),
         }
     }
-    fn setup_tasks(&self) {
-        let model=gio::ListStore::new::<TaskObject>();
-        self.imp().tasks.replace(Some(model));
+    fn setup_collections(&self) {
+        let collections = gio::ListStore::new::<CollectionObject>();
+        self.imp()
+            .collections
+            .set(collections.clone())
+            .expect("Could not set collections");
 
-        let filter_model=FilterListModel::new(Some(self.tasks()), self.filter());
-        let selection_model=NoSelection::new(Some(filter_model.clone()));
-        self.imp().tasks_list.bind_model(
-            Some(&selection_model), 
-            clone!(@weak self as window=>@default-panic,move|obj|{
-                let task_object=obj.downcast_ref().expect("el objeto deberia ser TaskObject");
-                let row=window.create_task_row(task_object);
+        self.imp().collections_list.bind_model(
+            Some(&collections),
+            clone!(@weak self as window => @default-panic, move |obj| {
+                let collection_object = obj
+                    .downcast_ref()
+                    .expect("The object should be of type `CollectionObject`.");
+                let row = window.create_collection_row(collection_object);
                 row.upcast()
-            })
-        );
-        self.settings().connect_changed(Some("filter"), 
-            clone!(@weak self as window,@weak filter_model =>move|_,_|{
-                filter_model.set_filter(window.filter().as_ref());
-            })
-        );
-        self.set_task_list_visible(&self.tasks());
-        self.tasks().connect_items_changed(
-            clone!(@weak self as window=>move|tasks,_x,_y,_z|{
-                window.set_task_list_visible(tasks);
-            })
-        );
+            }),
+        )
+    }
+    fn restore_data(&self) {
+        if let Ok(file) = File::open(data_path()) {
+            let backup_data: Vec<CollectionData> = serde_json::from_reader(file)
+                .expect(
+                    "It should be possible to read `backup_data` from the json file.",
+                );
+
+            let collections: Vec<CollectionObject> = backup_data
+                .into_iter()
+                .map(CollectionObject::from_collection_data)
+                .collect();
+
+            self.collections().extend_from_slice(&collections);
+
+            if let Some(first_collection) = collections.first() {
+                self.set_current_collection(first_collection.clone());
+            }
+        }
+    }
+    fn create_collection_row(&self,collection_object: &CollectionObject) -> ListBoxRow {
+        let label = Label::builder()
+            .ellipsize(pango::EllipsizeMode::End)
+            .xalign(0.0)
+            .build();
+
+        collection_object
+            .bind_property("title", &label, "label")
+            .sync_create()
+            .build();
+
+        ListBoxRow::builder().child(&label).build()
     }
     fn set_task_list_visible(&self,tasks:&gio::ListStore) {
         self.imp().tasks_list.set_visible(tasks.n_items() > 0);
     }
-    fn restore_data(&self) {
-        if let Ok(file) = File::open(data_path()) {
-            let backup_data:Vec<TaskData>=serde_json::from_reader(file)
-                .expect("deberia leer el 'backup_data' del archivo json");
-
-            let task_object:Vec<TaskObject>=backup_data
-                .into_iter()
-                .map(TaskObject::from_task_data)
-                .collect();
-            self.tasks().extend_from_slice(&task_object);
+    fn select_collection_row(&self) {
+        if let Some(index) = self.collections().find(&self.current_collection()) {
+            let row = self.imp().collections_list.row_at_index(index as i32);
+            self.imp().collections_list.select_row(row.as_ref());
         }
     }
     fn create_task_row(&self,task_object:&TaskObject)->ActionRow {
@@ -171,5 +208,40 @@ impl Window {
             })
         );
         self.add_action(&action_remove_done_tasks);
+    }
+    fn set_current_collection(&self, collection: CollectionObject) {
+        let tasks = collection.tasks();
+        let filter_model = FilterListModel::new(Some(tasks.clone()), self.filter());
+        let selection_model = NoSelection::new(Some(filter_model.clone()));
+        self.imp().tasks_list.bind_model(
+            Some(&selection_model),
+            clone!(@weak self as window => @default-panic, move |obj| {
+                let task_object = obj
+                    .downcast_ref()
+                    .expect("The object should be of type `TaskObject`.");
+                let row = window.create_task_row(task_object);
+                row.upcast()
+            }),
+        );
+
+        self.imp().current_filter_model.replace(Some(filter_model));
+
+        if let Some(handler_id) = self.imp().tasks_changed_handler_id.take() {
+            self.tasks().disconnect(handler_id);
+        }
+
+        self.set_task_list_visible(&tasks);
+        let tasks_changed_handler_id = tasks.connect_items_changed(
+            clone!(@weak self as window => move |tasks, _, _, _| {
+                window.set_task_list_visible(tasks);
+            }),
+        );
+        self.imp()
+            .tasks_changed_handler_id
+            .replace(Some(tasks_changed_handler_id));
+
+        self.imp().current_collection.replace(Some(collection));
+
+        self.select_collection_row();
     }
 }

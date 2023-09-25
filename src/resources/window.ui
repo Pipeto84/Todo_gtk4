@@ -35,7 +35,7 @@
     <property name="content">
       <object class="GtkStack" id="stack">
         <property name="transition-type">crossfade</property>
-        <child>
+        <!-- <child>
           <object class="GtkStackPage">
             <property name="name">empty</property>
             <property name="child">
@@ -75,7 +75,7 @@
               </object>
             </property>
           </object>
-        </child>
+        </child> -->
         <child>
           <object class="GtkStackPage">
             <property name="name">main</property>

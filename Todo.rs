@@ -1,8 +1,15 @@
 pub struct Window{
+    pub settings:OnceCell<Settings>,
     pub entry:TemplateChild<Entry>,
     pub tasks_list:TemplateChild<ListBox>,
-    pub tasks:RefCell<Option<ListStore>>,
-    pub settings:OnceCell<Settings>,
+    pub collections_list:TemplateChild<ListBox>,
+    pub leaflet:TemplateChild<Leaflet>,
+    pub stack:TemplateChild<Stack>,
+    pub back_button:TemplateChild<Button>,
+    pub collections:OnceCell<ListStore>,
+    pub current_collection:RefCell<Option<CollectionObject>>,
+    pub current_filter_model:RefCell<Option<FilterListModel>>,
+    pub tasks_changed_handler_id:RefCell<Option<SignalHandlerId>>
 }
 impl ObjectSubclass for Window {
     const NAME: &'static str = "TodoWindow";

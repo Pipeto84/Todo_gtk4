@@ -4,7 +4,7 @@ use glib::{subclass::InitializingObject,SignalHandlerId};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,Leaflet};
 
-use crate::{task_object::{TaskData, TaskObject}, utils::data_path};
+use crate::utils::data_path;
 use crate::collection_object::{CollectionObject,CollectionData};
 #[derive(Default,CompositeTemplate)]
 #[template(resource="/org/gtk_rs/Todo/window.ui")]

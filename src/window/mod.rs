@@ -6,7 +6,7 @@ use glib::{Object,clone};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,ActionRow};
 
-use crate::{task_object::{TaskObject, TaskData},APP_ID,utils::data_path};
+use crate::{task_object::TaskObject,APP_ID,utils::data_path};
 use crate::collection_object::{CollectionObject,CollectionData};
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)

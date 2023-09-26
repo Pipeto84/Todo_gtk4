@@ -1,10 +1,11 @@
 mod imp;
 use std::fs::File;
-use gtk::{glib,gio,NoSelection,CustomFilter,FilterListModel,CheckButton,Align,pango,ListBoxRow,Entry,Label};
+use gtk::{glib,gio,NoSelection,CustomFilter,FilterListModel,CheckButton,Align,
+    pango,ListBoxRow,Label};
 use glib::{Object,clone};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,ActionRow};
-use crate::task_object::{TaskObject, TaskData};
+use crate::task_object::TaskObject;
 use crate::APP_ID;
 use crate::utils::data_path;
 use crate::collection_object::{CollectionObject, CollectionData};
@@ -163,7 +164,7 @@ impl Window {
     fn select_collection_row(&self) {
         if let Some(index) = self.collections().find(&self.current_collection()) {
             let row=self.imp().collections_list.row_at_index(index as i32);
-            let x=self.imp().collections_list.select_row(row.as_ref());
+            self.imp().collections_list.select_row(row.as_ref());
         }
     }
     fn create_task_row(&self,task_object:&TaskObject)->ActionRow {
@@ -173,7 +174,7 @@ impl Window {
             .build();
         let row=ActionRow::builder()
             .activatable_widget(&checkbutton)
-            .css_name("rows")
+            // .css_name("rows")
             .build();
         row.add_prefix(&checkbutton);
 
@@ -186,7 +187,6 @@ impl Window {
             .bind_property("content", &row, "title")
             .sync_create()
             .build();
-
         row
     }
     fn setup_callbacks(&self) {
@@ -217,24 +217,14 @@ impl Window {
                     .item(index as u32)
                     .expect("There needs to be an object at this position")
                     .downcast::<CollectionObject>()
-                    .expect("The object needs to be a 'CollectionObject'");
+                    .expect("The object has to be CollectionObject");
                 window.set_current_collection(selected_collection);
                 window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
             })
         );
-        self.imp().leaflet.connect_folded_notify(clone!(@weak self as window=>move|leaflet|{
-            if leaflet.is_folded() {
-                window.imp().collections_list.set_selection_mode(gtk::SelectionMode::None);
-            }else {
-                window.imp().collections_list.set_selection_mode(gtk::SelectionMode::Single);
-            }
-        }));
-        self.imp().back_button.connect_clicked(clone!(@weak self as window=>move|_|{
-            window.imp().leaflet.navigate(adw::NavigationDirection::Back);
-        }));
     }
     fn set_stack(&self) {
-        if self.collections().n_items() > 0 {
+        if self.collections().n_items()>0 {
             self.imp().stack.set_visible_child_name("main");
         }else {
             self.imp().stack.set_visible_child_name("placeholder");
@@ -269,67 +259,13 @@ impl Window {
                     position += 1;
                 }
             }
-            })
-        );
+        }));
         self.add_action(&action_remove_done_tasks);
 
         let action_new_list=gio::SimpleAction::new("new-collection", None);
         action_new_list.connect_activate(clone!(@weak self as window=>move|_,_|{
-            window.new_collection();
+            
         }));
         self.add_action(&action_new_list);
-    }
-    fn new_collection(&self) {
-        let entry=Entry::builder()
-            .placeholder_text("Name")
-            .activates_default(true)
-            .build();
-        let cancel_response="cancel";
-        let create_response="create";
-
-        let dialog=adw::MessageDialog::builder()
-            .heading("New Collection")
-            .transient_for(self)
-            .modal(true)
-            .destroy_with_parent(true)
-            .close_response(cancel_response)
-            .default_response(create_response)
-            .extra_child(&entry)
-            .build();
-        dialog.add_responses(&[(cancel_response,"Cancel"),(create_response,"Create")]);
-        dialog.set_response_enabled(create_response, false);
-        dialog.set_response_appearance(create_response, adw::ResponseAppearance::Suggested);
-
-        entry.connect_changed(clone!(@weak dialog=>move|entry|{
-            let text=entry.text();
-            let empty=text.is_empty();
-
-            dialog.set_response_enabled(create_response, !empty);
-
-            if empty {
-                entry.add_css_class("error");
-            }else {
-                entry.remove_css_class("error");
-            }
-        }));
-        dialog.connect_response(
-            None, 
-            clone!(@weak self as window, @weak entry=>move|dialog,response|{
-                dialog.destroy();
-                if response !=create_response {
-                    return;
-                }
-                let tasks=gio::ListStore::new::<TaskObject>();
-
-                let title=entry.text().to_string();
-                let collection=CollectionObject::new(&title, tasks);
-
-                window.collections().append(&collection);
-                window.set_current_collection(collection);
-
-                window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
-            })
-        );
-        dialog.present();
     }
 }

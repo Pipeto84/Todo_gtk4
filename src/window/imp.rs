@@ -3,7 +3,6 @@ use gtk::{gio,glib,CompositeTemplate,Entry,ListBox,Stack,Button, FilterListModel
 use glib::{subclass::InitializingObject,SignalHandlerId};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,Leaflet};
-use crate::task_object::{TaskData, TaskObject};
 use crate::utils::data_path;
 use crate::collection_object::{CollectionData,CollectionObject};
 #[derive(Default,CompositeTemplate)]

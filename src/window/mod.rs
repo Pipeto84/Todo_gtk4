@@ -222,6 +222,17 @@ impl Window {
                 window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
             })
         );
+        self.imp().leaflet.connect_folded_notify(clone!(@weak self as window=>move|leaflet|{
+            if leaflet.is_folded() {
+                window.imp().collections_list.set_selection_mode(gtk::SelectionMode::None)
+            }else {
+                window.imp().collections_list.set_selection_mode(gtk::SelectionMode::Single);
+                window.select_collection_row();
+            }
+        }));
+        self.imp().back_button.connect_clicked(clone!(@weak self as window=>move|_|{
+            window.imp().leaflet.navigate(adw::NavigationDirection::Back);
+        }));
     }
     fn set_stack(&self) {
         if self.collections().n_items()>0 {

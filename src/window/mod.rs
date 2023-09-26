@@ -1,7 +1,7 @@
 mod imp;
 use std::fs::File;
 use gtk::{glib,gio,NoSelection,CustomFilter,FilterListModel,CheckButton,Align,
-    pango,ListBoxRow,Label};
+    pango,ListBoxRow,Label, Entry, Button,Box};
 use glib::{Object,clone};
 use gio::Settings;
 use adw::{prelude::*,subclass::prelude::*,ActionRow};
@@ -9,6 +9,7 @@ use crate::task_object::TaskObject;
 use crate::APP_ID;
 use crate::utils::data_path;
 use crate::collection_object::{CollectionObject, CollectionData};
+const APP_ID_C:&str="org.gtk_rs.TodoNewCollection";
 glib::wrapper! {
     pub struct Window(ObjectSubclass<imp::Window>)
         @extends adw::ApplicationWindow,gtk::ApplicationWindow,gtk::Window,gtk::Widget,
@@ -275,8 +276,46 @@ impl Window {
 
         let action_new_list=gio::SimpleAction::new("new-collection", None);
         action_new_list.connect_activate(clone!(@weak self as window=>move|_,_|{
-            
+            window.new_collection();
         }));
         self.add_action(&action_new_list);
+
+    }
+    fn new_collection(&self) {
+        let app=adw::Application::builder().application_id(APP_ID_C).build();
+        app.connect_activate(move|app|{
+            let entry=Entry::builder()
+                .placeholder_text("Name")
+                .build();
+            let button_create=Button::builder()
+                .label("Create")
+                .sensitive(true)
+                // .action_name("create")
+                .build();
+            
+            let gtk_box_1=Box::builder()
+                .orientation(gtk::Orientation::Vertical)
+                .margin_top(12)
+                .margin_bottom(12)
+                .margin_start(12)
+                .margin_end(12)
+                .spacing(12)
+                .build();
+            gtk_box_1.append(&entry);
+            gtk_box_1.append(&button_create);
+            let window=gtk::ApplicationWindow::builder()
+                .application(app)
+                .title("New Collection")
+                .child(&gtk_box_1)
+                .build();
+            button_create.connect_clicked(clone!(@weak entry=>move|_|{
+                let texto=entry.buffer().text().to_string();
+                println!("{:?}",texto);
+                entry.buffer().set_text("");
+            }));
+
+            window.present();
+        });
+        app.run();
     }
 }

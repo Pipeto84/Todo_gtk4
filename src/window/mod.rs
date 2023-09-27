@@ -175,7 +175,6 @@ impl Window {
             .build();
         let row=ActionRow::builder()
             .activatable_widget(&checkbutton)
-            // .css_name("rows")
             .build();
         row.add_prefix(&checkbutton);
 
@@ -256,6 +255,20 @@ impl Window {
         let action_filter=self.settings().create_action("filter");
         self.add_action(&action_filter);
 
+        let action_remove_currenty_collection=
+            gio::SimpleAction::new("remove-currenty-collection", None);
+        action_remove_currenty_collection.connect_activate(clone!(@weak self as window=>move|_,_|{
+            if let Some(index) = window.collections().find(&window.current_collection()) {
+                window.collections().remove(index);
+                let collections:Vec<CollectionObject>=window
+                    .collections().iter::<CollectionObject>().filter_map(|x|x.ok()).collect();
+                if let Some(first) = collections.first() {
+                    window.set_current_collection(first.clone());
+                }
+            }
+        }));
+        self.add_action(&action_remove_currenty_collection);
+
         let action_remove_done_tasks=
             gio::SimpleAction::new("remove-done-tasks", None);
         action_remove_done_tasks.connect_activate(clone!(@weak self as window=>move|_,_|{
@@ -279,16 +292,15 @@ impl Window {
             window.new_collection();
         }));
         self.add_action(&action_new_list);
-
     }
     fn new_collection(&self) {
         let app=adw::Application::builder().application_id(APP_ID_C).build();
         app.connect_activate(clone!(@weak self as window=>move|app|{
             let entry=Entry::builder()
-                .placeholder_text("Name")
+                .placeholder_text("Nombre lista")
                 .build();
             let button_create=Button::builder()
-                .label("Create")
+                .label("Crear")
                 .sensitive(false)
                 .build();
             let gtk_box_1=Box::builder()
@@ -303,7 +315,8 @@ impl Window {
             gtk_box_1.append(&button_create);
             let window_new_collection=gtk::ApplicationWindow::builder()
                 .application(app)
-                .title("New Collection")
+                .title("Nueva lista")
+                .width_request(250)
                 .child(&gtk_box_1)
                 .build();
             entry.connect_changed(clone!(@weak button_create=>move|entry|{

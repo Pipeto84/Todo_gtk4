@@ -20,6 +20,10 @@
       </item>
     </submenu>
     <item>
+      <attribute name="label" translatable="yes">_Eliminar lista actual</attribute>
+      <attribute name="action">win.remove-currenty-collection</attribute>
+    </item>
+    <item>
       <attribute name="label" translatable="yes">_Eliminar tareas listas</attribute>
       <attribute name="action">win.remove-done-tasks</attribute>
     </item>
@@ -29,7 +33,7 @@
     </item>
   </menu>
   <template class="TodoWindow" parent="AdwApplicationWindow">
-    <property name="title" translatable="yes">To-Do</property>
+    <property name="title" translatable="yes">Tareas</property>
     <property name="default_width">650</property>
     <property name="default_height">550</property>
     <property name="content">
@@ -167,7 +171,7 @@
                                 <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkEntry" id="entry">
-                                    <property name="placeholder-text" translatable="yes">Enter a Task…</property>
+                                    <property name="placeholder-text" translatable="yes">Tarea nueva…</property>
                                     <property name="secondary-icon-name">list-add-symbolic</property>
                                   </object>
                                 </child>

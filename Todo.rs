@@ -44,3 +44,53 @@ pub struct CollectionData{
     pub title:String,
     pub tasks_data:Vec<TaskData>,
 }
+
+new
+setup_settings
+setup_collections
+  create_collection_row
+restore_data
+  collections
+  set_current_collection
+    tasks
+      current_collection
+    create_task_row
+    tasks
+    set_task_list_visible
+    set_task_list_visible
+    select_collection_row
+      collections
+      current_collection
+setup_callbacks
+  new_task
+  new_task
+  settings
+  set_filter
+    filter
+      settings
+  set_stack
+  set_stack
+  collections
+  set_current_collection
+  select_collection_row
+setup_actions
+  settings
+  collections
+  current_collection
+  collections
+  collections
+  set_current_collection
+  tasks
+  new_collection
+    collections
+    set_current_collection
+  
+
+
+
+
+
+
+
+
+

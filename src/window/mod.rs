@@ -283,16 +283,14 @@ impl Window {
     }
     fn new_collection(&self) {
         let app=adw::Application::builder().application_id(APP_ID_C).build();
-        app.connect_activate(move|app|{
+        app.connect_activate(clone!(@weak self as window=>move|app|{
             let entry=Entry::builder()
                 .placeholder_text("Name")
                 .build();
             let button_create=Button::builder()
                 .label("Create")
                 .sensitive(true)
-                // .action_name("create")
                 .build();
-            
             let gtk_box_1=Box::builder()
                 .orientation(gtk::Orientation::Vertical)
                 .margin_top(12)
@@ -303,19 +301,30 @@ impl Window {
                 .build();
             gtk_box_1.append(&entry);
             gtk_box_1.append(&button_create);
-            let window=gtk::ApplicationWindow::builder()
+            let window_new_collection=gtk::ApplicationWindow::builder()
                 .application(app)
                 .title("New Collection")
                 .child(&gtk_box_1)
                 .build();
-            button_create.connect_clicked(clone!(@weak entry=>move|_|{
-                let texto=entry.buffer().text().to_string();
-                println!("{:?}",texto);
-                entry.buffer().set_text("");
+            let cerrar=window_new_collection.clone();
+            button_create.connect_clicked(clone!(@weak entry=>move|boton|{
+                let buffer=entry.buffer();
+                let title=buffer.text().to_string();
+                if title.is_empty() {
+                    boton.set_sensitive(false);
+                    return;
+                }
+                buffer.set_text("");
+                let tasks=gio::ListStore::new::<TaskObject>();
+                let collection=CollectionObject::new(&title, tasks);
+                window.collections().append(&collection);
+                window.set_current_collection(collection);
+                window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
+                cerrar.close();
             }));
-
-            window.present();
-        });
+            
+            window_new_collection.present();
+        }));
         app.run();
     }
 }

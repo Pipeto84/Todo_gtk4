@@ -289,7 +289,7 @@ impl Window {
                 .build();
             let button_create=Button::builder()
                 .label("Create")
-                .sensitive(true)
+                .sensitive(false)
                 .build();
             let gtk_box_1=Box::builder()
                 .orientation(gtk::Orientation::Vertical)
@@ -306,14 +306,19 @@ impl Window {
                 .title("New Collection")
                 .child(&gtk_box_1)
                 .build();
-            let cerrar=window_new_collection.clone();
-            button_create.connect_clicked(clone!(@weak entry=>move|boton|{
-                let buffer=entry.buffer();
+            entry.connect_changed(clone!(@weak button_create=>move|entry|{
+                let buffer=entry.buffer();//println!("{:?}",line!());
                 let title=buffer.text().to_string();
                 if title.is_empty() {
-                    boton.set_sensitive(false);
-                    return;
+                    button_create.set_sensitive(false);
+                }else {
+                    button_create.set_sensitive(true);
                 }
+            }));
+            let cerrar=window_new_collection.clone();
+            button_create.connect_clicked(clone!(@weak entry=>move|_|{
+                let buffer=entry.buffer();
+                let title=buffer.text().to_string();
                 buffer.set_text("");
                 let tasks=gio::ListStore::new::<TaskObject>();
                 let collection=CollectionObject::new(&title, tasks);
@@ -322,7 +327,6 @@ impl Window {
                 window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
                 cerrar.close();
             }));
-            
             window_new_collection.present();
         }));
         app.run();

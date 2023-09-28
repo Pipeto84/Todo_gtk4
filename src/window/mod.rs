@@ -264,6 +264,7 @@ impl Window {
                     .collections().iter::<CollectionObject>().filter_map(|x|x.ok()).collect();
                 if let Some(first) = collections.first() {
                     window.set_current_collection(first.clone());
+                    window.imp().leaflet.navigate(adw::NavigationDirection::Back);
                 }
             }
         }));
@@ -295,7 +296,7 @@ impl Window {
     }
     fn new_collection(&self) {
         let app=adw::Application::builder().application_id(APP_ID_C).build();
-        app.connect_activate(clone!(@weak self as window=>move|app|{
+        app.connect_activate(clone!(@strong self as window=>move|app|{
             let entry=Entry::builder()
                 .placeholder_text("Nombre lista")
                 .build();
@@ -328,6 +329,8 @@ impl Window {
                     button_create.set_sensitive(true);
                 }
             }));
+            let window1=window.clone();
+            let window2=window.clone();
             let cerrar=window_new_collection.clone();
             button_create.connect_clicked(clone!(@weak entry=>move|_|{
                 let buffer=entry.buffer();
@@ -335,11 +338,23 @@ impl Window {
                 buffer.set_text("");
                 let tasks=gio::ListStore::new::<TaskObject>();
                 let collection=CollectionObject::new(&title, tasks);
-                window.collections().append(&collection);
-                window.set_current_collection(collection);
-                window.imp().leaflet.navigate(adw::NavigationDirection::Forward);
+                window1.collections().append(&collection);
+                window1.set_current_collection(collection);
+                window1.imp().leaflet.navigate(adw::NavigationDirection::Forward);
                 cerrar.close();
             }));
+            let cerrar=window_new_collection.clone();
+            entry.connect_activate(move|entry|{
+                let buffer=entry.buffer();
+                let title=buffer.text().to_string();
+                buffer.set_text("");
+                let tasks=gio::ListStore::new::<TaskObject>();
+                let collection_object=CollectionObject::new(&title, tasks);
+                window2.collections().append(&collection_object);
+                window2.set_current_collection(collection_object);
+                window2.imp().leaflet.navigate(adw::NavigationDirection::Forward);
+                cerrar.close();
+            });
             window_new_collection.present();
         }));
         app.run();
